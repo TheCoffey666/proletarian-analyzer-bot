@@ -7,13 +7,19 @@ TOKEN = os.getenv("BOT_TOKEN")
 if TOKEN is None:
     raise ValueError("BOT_TOKEN is not set. Please check your environment variables.")
 
-# Команда /start
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Пролетарский бот на связи. Жду указаний!")
 
-# Создаём приложение и добавляем обработчик
+# /analyze
+async def analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Команда /analyze получена. Пришли мне текст для анализа.")
+
 app = ApplicationBuilder().token(TOKEN).build()
+
+# Регистрируем обработчики команд
 app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("analyze", analyze))
 
 # Запускаем бота
 app.run_polling()
