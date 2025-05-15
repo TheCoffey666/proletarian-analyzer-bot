@@ -1,8 +1,12 @@
 import os
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler
 
-TOKEN = os.environ.get("8049913853:AAHCBbX7YBoKXhq14phVnZsRp6xNoLnQtdI")
+TOKEN = os.getenv("BOT_TOKEN")
+
+if not TOKEN:
+    raise ValueError("BOT_TOKEN is not set. Please check your environment variables.")
+
+app = ApplicationBuilder().token(TOKEN).build()
 
 # Текст шаблона анализа
 ANALYSIS_SCHEMA = """
