@@ -1,6 +1,5 @@
 import os
-from telegram.ext import ApplicationBuilder, CommandHandler
-
+print("BOT_TOKEN from env:", os.getenv("BOT_TOKEN"))
 TOKEN = os.getenv("BOT_TOKEN")
 
 if not TOKEN:
