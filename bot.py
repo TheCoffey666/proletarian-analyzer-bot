@@ -2,7 +2,7 @@ import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = os.environ.get("8049913853:AAHCBbX7YBoKXhq14phVnZsRp6xNoLnQtdI")
 
 # Текст шаблона анализа
 ANALYSIS_SCHEMA = """
