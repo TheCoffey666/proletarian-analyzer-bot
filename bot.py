@@ -1,83 +1,7 @@
-# filename: bot.py
-
-import json
-from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    filters,
-    ConversationHandler,
-    ContextTypes,
-)
-
-TOKEN = "PASTE_YOUR_TOKEN_HERE"
-
-QUESTIONS = [
-    "1️⃣ Что произошло? (Факт)",
-    "2️⃣ Как это подаётся в источнике? (Интерпретация)",
-    "3️⃣ Кому это выгодно? (Классовая функция)",
-    "4️⃣ О чём умалчивают? (Молчание)",
-    "5️⃣ Каковы материальные причины? (Противоречие)",
-    "6️⃣ Зачем это сообщение? (Цель, телеология)",
-    "7️⃣ Пролетарская трактовка события?",
-]
-
-STATE = range(7)
-user_data = {}
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Напиши /analyze чтобы начать анализ новости.")
-
-async def analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_data[update.effective_chat.id] = []
-    await update.message.reply_text(QUESTIONS[0])
-    return STATE[0]
-
-async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    cid = update.effective_chat.id
-    step = len(user_data[cid])
-    user_data[cid].append(update.message.text)
-
-    if step + 1 < len(QUESTIONS):
-        await update.message.reply_text(QUESTIONS[step + 1])
-        return STATE[step + 1]
-    else:
-        # Сборка финального отчёта
-        summary = "\n".join([f"{QUESTIONS[i]}\n{user_data[cid][i]}" for i in range(7)])
-        # Сохраняем в файл
-        with open(f"analysis_{cid}.json", "a", encoding="utf-8") as f:
-            json.dump({"user": cid, "answers": user_data[cid]}, f, ensure_ascii=False)
-            f.write("\n")
-
-        await update.message.reply_text("📝 Готово! Вот твой анализ:\n\n" + summary)
-        return ConversationHandler.END
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Анализ отменён.")
-    return ConversationHandler.END
-
-def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("analyze", analyze)],
-        states={STATE[i]: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_answer)] for i in range(7)},
-        fallbacks=[CommandHandler("cancel", cancel)],
-    )
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(conv_handler)
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
-
 import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-# Получение токена из переменных среды Railway
 TOKEN = os.environ.get("TOKEN")
 
 # Текст шаблона анализа
@@ -113,13 +37,44 @@ ANALYSIS_SCHEMA = """
 Пример: «ЦБ переложил инфляционные издержки на трудящихся, чтобы спасти спекулятивный капитал.»
 """
 
-# Команда /start
+# Обработка команд
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Напиши /schema чтобы получить шаблон анализа новости.")
+    await update.message.reply_text("Привет! Напиши /schema для шаблона анализа или /analyze чтобы разобрать новость.")
 
-# Команда /schema
 async def schema(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(ANALYSIS_SCHEMA, parse_mode="Markdown")
+
+async def analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Отправь новость или фрагмент текста, и я помогу разобрать её по пролетарскому шаблону.")
+
+# Обработка любых сообщений после /analyze
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+    response = f"""
+Начинаем анализ:
+
+1. **Факт (бытие)**  
+🔹 {user_text}
+
+2. **Интерпретация (надстройка)**  
+🔸 (Как это подаётся? Кто говорит? Какие чувства вызывает?)
+
+3. **Классовая функция**  
+🔸 (Чьи интересы обслуживаются? Кому выгодно?)
+
+4. **Молчание (что скрыто?)**  
+🔸 (О чём умолчали?)
+
+5. **Материальная подоплёка**  
+🔸 (Какие противоречия в основе события?)
+
+6. **Цель (телеология)**  
+🔸 (Зачем именно в таком виде? Что формирует?)
+
+7. **Альтернативная трактовка**  
+🔸 (Как бы выглядело с позиции трудящихся?)
+"""
+    await update.message.reply_text(response, parse_mode="Markdown")
 
 # Запуск приложения
 if __name__ == "__main__":
@@ -127,6 +82,8 @@ if __name__ == "__main__":
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("schema", schema))
+    app.add_handler(CommandHandler("analyze", analyze))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("Бот запущен...")
     app.run_polling()
