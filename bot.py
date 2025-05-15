@@ -1,6 +1,8 @@
 import os
-print("BOT_TOKEN from env:", os.getenv("BOT_TOKEN"))
+from telegram.ext import ApplicationBuilder, CommandHandler
+
 TOKEN = os.getenv("BOT_TOKEN")
+print("BOT_TOKEN from env:", TOKEN)
 
 if not TOKEN:
     raise ValueError("BOT_TOKEN is not set. Please check your environment variables.")
