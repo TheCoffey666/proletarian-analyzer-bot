@@ -1,13 +1,22 @@
 import os
-from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 TOKEN = os.getenv("BOT_TOKEN")
-print("BOT_TOKEN from env:", TOKEN)
 
-if not TOKEN:
+if TOKEN is None:
     raise ValueError("BOT_TOKEN is not set. Please check your environment variables.")
 
+# Команда /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Пролетарский бот на связи. Жду указаний!")
+
+# Создаём приложение и добавляем обработчик
 app = ApplicationBuilder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+
+# Запускаем бота
+app.run_polling()
 
 # Текст шаблона анализа
 ANALYSIS_SCHEMA = """
