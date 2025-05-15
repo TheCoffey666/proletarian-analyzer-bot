@@ -1,31 +1,17 @@
 import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 TOKEN = os.getenv("BOT_TOKEN")
-
 if TOKEN is None:
     raise ValueError("BOT_TOKEN is not set. Please check your environment variables.")
 
-# /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Пролетарский бот на связи. Жду указаний!")
-
-# /analyze
-async def analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Команда /analyze получена. Пришли мне текст для анализа.")
-
-app = ApplicationBuilder().token(TOKEN).build()
-
-# Регистрируем обработчики команд
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("analyze", analyze))
-app.add_handler(CommandHandler("analyze", schema))
-
-# Запускаем бота
-app.run_polling()
-
-# Текст шаблона анализа
 ANALYSIS_SCHEMA = """
 🔧 Шаблон пролетарского анализа новости
 
@@ -58,17 +44,19 @@ ANALYSIS_SCHEMA = """
 Пример: «ЦБ переложил инфляционные издержки на трудящихся, чтобы спасти спекулятивный капитал.»
 """
 
-# Обработка команд
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Напиши /schema для шаблона анализа или /analyze чтобы разобрать новость.")
+    await update.message.reply_text(
+        "Привет! Напиши /schema для шаблона анализа или /analyze чтобы разобрать новость."
+    )
 
 async def schema(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(ANALYSIS_SCHEMA, parse_mode="Markdown")
 
 async def analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Отправь новость или фрагмент текста, и я помогу разобрать её по пролетарскому шаблону.")
+    await update.message.reply_text(
+        "Отправь новость или фрагмент текста, и я помогу разобрать её по пролетарскому шаблону."
+    )
 
-# Обработка любых сообщений после /analyze
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     response = f"""
@@ -97,7 +85,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
     await update.message.reply_text(response, parse_mode="Markdown")
 
-# Запуск приложения
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
 
