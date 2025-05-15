@@ -20,6 +20,7 @@ app = ApplicationBuilder().token(TOKEN).build()
 # Регистрируем обработчики команд
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("analyze", analyze))
+app.add_handler(CommandHandler("analyze", schema))
 
 # Запускаем бота
 app.run_polling()
